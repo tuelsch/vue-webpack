@@ -86,6 +86,8 @@
     "webpack-hot-middleware": "^2.6.0",
     "webpack-merge": "^0.8.3",
     "glob": "^7.0.5",
-    "pug-static-loader": "0.0.1"
+    "pug-static-loader": "0.0.1",
+    "node-sass": "^3.8.0",
+    "sass-loader": "^4.0.0"
   }
 }
