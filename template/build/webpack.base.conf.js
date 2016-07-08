@@ -1,7 +1,23 @@
 var path = require('path')
+var glob = require('glob')
+var HtmlWebpackPlugin = require('html-webpack-plugin')
 var config = require('../config')
-var cssLoaders = require('./css-loaders')
+var utils = require('./utils')
 var projectRoot = path.resolve(__dirname, '../')
+
+var gatherViews = glob.sync(config.build.views).map(function (view) {
+  return new HtmlWebpackPlugin({
+    template: view,
+    filename: path.win32.basename(view, '.pug') + '.html',
+    minify: process.env.NODE_ENV === 'production'
+      ? {
+        removeComments: true,
+        collapseWhitespace: true,
+        removeAttributeQuotes: true
+      }
+      : {}
+  })
+})
 
 module.exports = {
   entry: {
@@ -13,7 +29,7 @@ module.exports = {
     filename: '[name].js'
   },
   resolve: {
-    extensions: ['', '.js', '.vue'],
+    extensions: ['', '.js', '.vue', '.pug'],
     fallback: [path.join(__dirname, '../node_modules')],
     alias: {
       'src': path.resolve(__dirname, '../src'),
@@ -25,6 +41,7 @@ module.exports = {
     fallback: [path.join(__dirname, '../node_modules')]
   },
   module: {
+    {{#lint}}
     preLoaders: [
       {
         test: /\.vue$/,
@@ -39,7 +56,12 @@ module.exports = {
         exclude: /node_modules/
       }
     ],
+    {{/lint}}
     loaders: [
+      {
+        test: /\.pug$/,
+        loader: 'pug-static-loader'
+      },
       {
         test: /\.vue$/,
         loader: 'vue'
@@ -59,19 +81,30 @@ module.exports = {
         loader: 'vue-html'
       },
       {
-        test: /\.(png|jpe?g|gif|svg|woff2?|eot|ttf|otf)(\?.*)?$/,
+        test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
         loader: 'url',
         query: {
           limit: 10000,
-          name: path.join(config.build.assetsSubDirectory, '[name].[hash:7].[ext]')
+          name: utils.assetsPath('img/[name].[hash:7].[ext]')
+        }
+      },
+      {
+        test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/,
+        loader: 'url',
+        query: {
+          limit: 10000,
+          name: utils.assetsPath('fonts/[name].[hash:7].[ext]')
         }
       }
     ]
   },
-  vue: {
-    loaders: cssLoaders()
-  },
+  plugins: gatherViews,
+  {{#lint}}
   eslint: {
     formatter: require('eslint-friendly-formatter')
+  },
+  {{/lint}}
+  vue: {
+    loaders: utils.cssLoaders()
   }
 }
